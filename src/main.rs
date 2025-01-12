@@ -8,7 +8,7 @@ fn main() {
         .expect("Failed to create reader");
     let writer = build_writer(args.output_path)
         .expect("Failed to create writer");
-    uniq(reader, writer, args.count, args.repeated).unwrap();
+    uniq(reader, writer, args.count, args.repeated, args.unique).unwrap();
 }
 
 #[derive(Parser, Debug)]
@@ -20,4 +20,6 @@ struct Args {
     count: bool,
     #[clap(long, short('d'), action)]
     repeated: bool,
+    #[clap(long, short, action)]
+    unique: bool,
 }
