@@ -2,17 +2,19 @@ use std::fs::File;
 use std::io::{stdin, stdout, BufRead, BufReader, BufWriter, Write};
 use std::path::PathBuf;
 
-pub fn uniq<R: BufRead, W: Write>(input: R, mut output: W, count: bool) -> std::io::Result<()> {
+pub fn uniq<R: BufRead, W: Write>(input: R, mut output: W, count: bool, repeated: bool) -> std::io::Result<()> {
     let mut lines = input.lines();
     let mut prev_line = None;
     let mut current_count = 0;
 
     let mut write = |line: Option<&String>, line_count: usize| -> std::io::Result<()> {
-        if let Some(line) = line {
-            if count {
-                writeln!(output, "{} {}", line_count, line)?;
-            } else {
-                writeln!(output, "{}", line)?;
+        if (repeated && line_count > 1) || !repeated {
+            if let Some(line) = line {
+                if count {
+                    writeln!(output, "{} {}", line_count, line)?;
+                } else {
+                    writeln!(output, "{}", line)?;
+                }
             }
         }
         Ok(())
@@ -65,7 +67,7 @@ mod tests {
         let input = Cursor::new("apple\napple\nbanana\napple\nbanana\nbanana\n");
         let mut output = Vec::new();
 
-        uniq(input, &mut output, false).unwrap();
+        uniq(input, &mut output, false, false).unwrap();
 
         let result = String::from_utf8(output).unwrap();
         assert_eq!(result, "apple\nbanana\napple\nbanana\n");
@@ -76,7 +78,7 @@ mod tests {
         let input = Cursor::new("apple\napple\nbanana\napple\nbanana\nbanana\n");
         let mut output = Vec::new();
 
-        uniq(input, &mut output, true).unwrap();
+        uniq(input, &mut output, true, false).unwrap();
 
         let result = String::from_utf8(output).unwrap();
         assert_eq!(result, "2 apple\n1 banana\n1 apple\n2 banana\n");
@@ -87,9 +89,31 @@ mod tests {
         let input = Cursor::new("São Tomé\nSão Tomé\nBarthélemy\nSão Tomé\nBarthélemy\nBarthélemy\n");
         let mut output = Vec::new();
 
-        uniq(input, &mut output, true).unwrap();
+        uniq(input, &mut output, true, false).unwrap();
 
         let result = String::from_utf8(output).unwrap();
         assert_eq!(result, "2 São Tomé\n1 Barthélemy\n1 São Tomé\n2 Barthélemy\n");
+    }
+
+    #[test]
+    fn test_uniq_with_repeated() {
+        let input = Cursor::new("apple\napple\nbanana\napple\nbanana\nbanana\n");
+        let mut output = Vec::new();
+
+        uniq(input, &mut output, false, true).unwrap();
+
+        let result = String::from_utf8(output).unwrap();
+        assert_eq!(result, "apple\nbanana\n");
+    }
+
+    #[test]
+    fn test_uniq_with_count_repeated() {
+        let input = Cursor::new("apple\napple\nbanana\napple\nbanana\nbanana\n");
+        let mut output = Vec::new();
+
+        uniq(input, &mut output, true, true).unwrap();
+
+        let result = String::from_utf8(output).unwrap();
+        assert_eq!(result, "2 apple\n2 banana\n");
     }
 }

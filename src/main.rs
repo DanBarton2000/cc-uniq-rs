@@ -8,7 +8,7 @@ fn main() {
         .expect("Failed to create reader");
     let writer = build_writer(args.output_path)
         .expect("Failed to create writer");
-    uniq(reader, writer, args.count).unwrap();
+    uniq(reader, writer, args.count, args.repeated).unwrap();
 }
 
 #[derive(Parser, Debug)]
@@ -18,4 +18,6 @@ struct Args {
     output_path: Option<PathBuf>,
     #[clap(long, short, action)]
     count: bool,
+    #[clap(long, short('d'), action)]
+    repeated: bool,
 }
